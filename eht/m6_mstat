@@ -1,0 +1,8 @@
+#!/bin/bash
+
+da-client << END
+mstat?1
+mstat?2
+mstat?3
+mstat?4
+END

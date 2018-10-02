@@ -1,0 +1,18 @@
+#!/bin/bash
+
+backends=(r2dbe1 r2dbe2 r2dbe3 r2dbe4)
+
+for i in "${backends[@]}"
+do
+        echo "stopping monitoring daemon for $i"
+        r2daemon.py --stop $i
+done
+
+count=$(ps aux | grep "/home/oper/bin/r2daemon.py" | wc -l)
+((count=$count-1))
+
+if [ $count -ne 0  ]; then
+        echo "ERROR: Some of the daemons could not be stopped"
+else
+        echo "All daemons were stopped succesfully" 
+fi

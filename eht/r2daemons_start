@@ -1,0 +1,27 @@
+#!/bin/bash
+##############################################################
+# shell script to stop the r2daemons for all for r2dbe systems
+#
+# Helge Rottmann
+##############################################################
+
+backends=(r2dbe1 r2dbe2 r2dbe3 r2dbe4)
+
+for i in "${backends[@]}"
+do
+	echo "starting monitoring daemon for $i"
+	r2daemon.py --start $i
+done
+
+# wait 5 seconds as it can take the daemons some time to die in case of errors
+sleep 5
+
+count=$(ps aux | grep "/home/oper/bin/r2daemon.py" | wc -l)
+((count=$count-1))
+
+if [ $count -ne ${#backends[@]}  ]; then
+	echo "ERROR: not all of the daemons were started succesfully"
+else
+        echo "All daemons were started succesfully" 
+fi
+

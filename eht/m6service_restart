@@ -1,0 +1,118 @@
+#!/bin/sh
+#################################################################################
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#################################################################################
+# Script to reliably restart the cplane and dplane services used by the Mark6 
+# recording software.
+# The script automatically opens terminal windows displaying the cplane 
+# and dplane logs.
+#
+# Original author: Helge Rottmann (MPIfR)
+# Contact: rottmann(AT)mpifr.de
+#################################################################################
+
+DPLANE='dplane'
+CPLANE='cplane'
+
+DPLANE_LOG=/var/log/mark6/dplane-daemon.log
+CPLANE_LOG=/var/log/mark6/cplane-daemon.log
+
+
+# checks if a service is running
+is_service() {
+if ps ax | grep -v grep | grep -v tail | grep $1 > /dev/null
+then
+		return 0
+	else
+		return 1
+	fi
+}
+
+ 
+# main
+
+# close any log windows
+echo "Closing log windows"
+if ps ax | grep -v grep | grep $DPLANE_LOG
+then
+	kill $(ps ax | grep -v grep | grep $DPLANE_LOG | awk '{print $1}')
+fi
+
+if ps ax | grep -v grep | grep $CPLANE_LOG
+then
+	kill $(ps ax | grep -v grep | grep $CPLANE_LOG | awk '{print $1}')
+fi
+
+
+# stop the services
+if is_service $DPLANE
+then
+    echo "Stoping " $DPLANE
+    sudo /etc/init.d/dplane stop
+    wait
+fi
+
+if is_service $CPLANE
+then
+    echo "stoping " $CPLANE
+    sudo /etc/init.d/cplane stop
+    wait
+fi
+
+sleep 2
+
+# sometimes cplane/dplane cannot be stopped by the service scripts
+# so check if the services are really stopped
+if is_service $DPLANE
+then
+    echo "$DPLANE service is still running"
+    echo "Try ending it with kill -9"
+    exit
+fi
+
+if is_service $CPLANE
+then
+    echo "$CPLANE service is still running"
+    echo "Try ending it with kill -9"
+    exit
+fi
+
+# now restart the dplane and cplane services
+echo "Starting $DPLANE"
+sudo /etc/init.d/$DPLANE start
+wait
+sleep 5
+echo "Starting $CPLANE"
+sudo /etc/init.d/$CPLANE start
+wait
+
+# make sure services are up and running
+if ! is_service $DPLANE
+then
+    echo "$DPLANE service did not start"
+    echo "Giving up. Try rebooting. "
+    exit
+fi
+
+if ! is_service $CPLANE
+then
+    echo "$CPLANE service did not start"
+    echo "Giving up. Try rebooting. "
+    exit
+fi
+
+# display logs in xterms
+echo "Opening log output windows"
+xterm -e "tail -f /var/log/mark6/dplane-daemon.log" &
+xterm -e "tail -f /var/log/mark6/cplane-daemon.log" &
