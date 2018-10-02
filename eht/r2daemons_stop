@@ -1,4 +1,12 @@
 #!/bin/bash
+##############################################################
+# shell script to stop the r2daemons for 
+# all for r2dbe systems contained in the
+# backends array below
+#
+# Helge Rottmann
+##############################################################
+
 
 backends=(r2dbe1 r2dbe2 r2dbe3 r2dbe4)
 

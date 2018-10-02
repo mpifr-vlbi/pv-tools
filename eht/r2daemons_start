@@ -1,6 +1,8 @@
 #!/bin/bash
 ##############################################################
-# shell script to stop the r2daemons for all for r2dbe systems
+# shell script to start the r2daemons for
+# all for r2dbe systems contained in the
+# backends array below
 #
 # Helge Rottmann
 ##############################################################
