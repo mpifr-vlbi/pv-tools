@@ -37,13 +37,13 @@ version = "1.1"
 
 def usage():
 	usage = "USAGE: "
-	usage += "%prog [OPTIONS] r2dbe xml-schedule \n\n"
-	usage += "This script launches the EHT observation schedule given by the xml-schedule argument.\n"
-	usage += "The r2dbe argument is the r2dbe-hostname on which to execute the additional tasks described below.\n"
+	usage += "%prog [OPTIONS] xml-schedule \n\n"
+	usage += "This script launches the GMVA observation schedule given by the xml-schedule argument.\n"
 	usage += "In the scan gaps the following additional tasks are being performed:\n"
-	usage += "1) R2DBE 2-bit requantization is done\n"
-	usage += "2) noise generator output is set to IF\n"
-	usage += "3) r2dbe_monitor is displayed (automatically ends before the start of the next scan)\n\n"
+	usage += "1) 2-bit sampling statistics are obtained from the previous recording.\n"
+	usage += "2) m5spec is called to obtain bandpasses for all 16 pfb channels\n"
+	usage += "3) The bit statistics and bandpasses from the last scan are displayed graphically\n\n"
+	usage += "The results are stored in text form under %s\n\n" % (rootDir)
 	
 
 	return(usage)
@@ -70,7 +70,7 @@ def umountFuse():
 parser = OptionParser(usage=usage(),version=version)
 
 parser.add_option("--postScanMargin", type="int", default=20, dest="postScanMargin", help="number of seconds after the end of the next scan in which no further commands will be executed (default=20)")
-parser.add_option("-s", "--slot", type="int", default=1, help="The recorder slot used for recording")
+parser.add_option("-s", "--slot", type="int", default=1, help="The recorder slot used for recording (default: 1)")
 parser.add_option("-m", "--monitor-only", action="store_true", dest="monitor", help="Do not start the schedule. Only monitor between the recordings")
 
 
