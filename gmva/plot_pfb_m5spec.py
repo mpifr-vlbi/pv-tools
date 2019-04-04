@@ -20,6 +20,7 @@
 
 import sys
 import os
+import socket
 from optparse import OptionParser
 import matplotlib.pyplot as plt
 
@@ -52,9 +53,10 @@ def plotM5spec(infile):
 	file.close()
 
 	
+	hostname = socket.gethostname()
 	fig = plt.figure()
 	plt.rc("font", size=8)
-	fig.suptitle(infile, fontsize=16)
+	fig.suptitle("%s: %s" % (hostname, infile), fontsize=16)
 	for i in range(16):
 		plt.subplot(4,4,i+1)
 		plt.plot(xData,bandData[str(i+1)])

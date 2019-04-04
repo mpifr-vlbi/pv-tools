@@ -21,6 +21,7 @@
 import sys
 import os
 import re
+import socket
 from optparse import OptionParser
 import matplotlib.pyplot as plt
 
@@ -45,8 +46,9 @@ def plotM5bstate(infile):
 #Ch    --      -     +     ++        --      -      +     ++     gfact
 # 0   17621   29602   29995   17782      18.5   31.2   31.6   18.7   0.98
 
+	hostname = socket.gethostname()
 	fig = plt.figure()
-	fig.suptitle(infile, fontsize=16)
+	fig.suptitle("%s: %s" % (hostname, infile), fontsize=16)
 
 	plt.rc('font', size=8)
 
@@ -59,8 +61,10 @@ def plotM5bstate(infile):
 		if match:
 			ydata = [float(match.group(6)),float(match.group(7)),float(match.group(8)),float(match.group(9))] 
 			# check quality of bit statistics
-			if abs(ydata[0]-19) > 2 or abs(ydata[3]-19) > 2 or abs(ydata[1]-31) > 3 or abs(ydata[2]-31) > 3:
+			if abs(ydata[0]-19) > 6 or abs(ydata[3]-19) > 6 or abs(ydata[1]-31) > 6 or abs(ydata[2]-31) > 6:
 				color = "red"
+			elif abs(ydata[0]-19) > 3 or abs(ydata[3]-19) > 3 or abs(ydata[1]-31) > 3 or abs(ydata[2]-31) > 3:
+                                color = "orange"
 			else:
 				color = "green"
 	 		plt.subplot(4,4,int(match.group(1))+1)
