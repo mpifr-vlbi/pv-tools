@@ -72,6 +72,7 @@ parser = OptionParser(usage=usage(),version=version)
 parser.add_option("--postScanMargin", type="int", default=20, dest="postScanMargin", help="number of seconds after the end of the next scan in which no further commands will be executed (default=20)")
 parser.add_option("-s", "--slot", type="int", default=1, help="The recorder slot used for recording (default: 1)")
 parser.add_option("-m", "--monitor-only", action="store_true", dest="monitor", help="Do not start the schedule. Only monitor between the recordings")
+parser.add_option("-3", "--dbbc3", action="store_true", dest="dbbc3", help="use a DBBC3 backend")
 
 
 (options, args) = parser.parse_args()
