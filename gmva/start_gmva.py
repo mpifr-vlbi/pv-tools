@@ -32,7 +32,7 @@ rootDir = "/home/oper/GMVA"
 
 m6ccCommand = "/usr/local/bin/M6_CC"
 
-version = "1.1"
+version = "1.2"
 
 
 def usage():
