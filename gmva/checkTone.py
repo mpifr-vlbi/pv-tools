@@ -61,9 +61,11 @@ def plotM5spec(lowFreq):
     elif args.json:
         arg = "-j"
 
+    title1 = "Polarization_1_%s" % args.recorder
+    title2 = "Polarization_2_%s" % args.recorder
     #workDir = "/home/oper/tonecheck/test"
-    pol1Cmd = "getM5specTone.py %s -l %d -t %s %s/pol1.m5spec " % (arg, lowFreq, "Polarization_1", workDir)
-    pol2Cmd = "getM5specTone.py %s -l %d -t %s %s/pol2.m5spec " % (arg, lowFreq, "Polarization_2", workDir)
+    pol1Cmd = "getM5specTone.py %s -l %d -t %s %s/pol1.m5spec " % (arg, lowFreq, title1, workDir)
+    pol2Cmd = "getM5specTone.py %s -l %d -t %s %s/pol2.m5spec " % (arg, lowFreq, title2, workDir)
 
     if args.showPlot:
         os.system(pol1Cmd + "&")
@@ -117,7 +119,7 @@ def runRemoteM5spec(recorder, slot, code, scanname):
 
     # To do: check if remote mount directory exists
     # To do: handle abolute path on the remote side (remote which ?)
-    command = "/home/oper/shared/difx/latest/bin/m5spec /mnt/diskpack/%s/tone_%s_%s.vdif %s 512 1024 /tmp/%s_%s.m5spec" % (slot, code, scanname, dataFormat, scanname, slot)
+    command = "/home/oper/shared/difx/latest/bin/m5spec /mnt/diskpack/%s/tone_%s_%s.vdif %s 1024 2048 /tmp/%s_%s.m5spec" % (slot, code, scanname, dataFormat, scanname, slot)
 
     ssh = subprocess.Popen(["ssh", recorder, command], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     result = ssh.stdout.readlines()
