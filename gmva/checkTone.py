@@ -61,7 +61,7 @@ def plotM5spec(lowFreq):
     elif args.json:
         arg = "-j"
 
-    workDir = "/home/oper/tonecheck/test"
+    #workDir = "/home/oper/tonecheck/test"
     pol1Cmd = "getM5specTone.py %s -l %d -t %s %s/pol1.m5spec " % (arg, lowFreq, "Polarization_1", workDir)
     pol2Cmd = "getM5specTone.py %s -l %d -t %s %s/pol2.m5spec " % (arg, lowFreq, "Polarization_2", workDir)
 
@@ -116,7 +116,7 @@ def runRemoteM5spec(recorder, slot, code, scanname):
 
     # To do: check if remote mount directory exists
     # To do: handle abolute path on the remote side (remote which ?)
-    command = "/home/oper/shared/difx/latest/bin/m5spec /mnt/diskpack/%s/tone_%s_%s.vdif VDIF_8192-2048-8-2 512 1024 /tmp/%s_%s.m5spec" % (slot, code, scanname, scanname, slot)
+    command = "/home/oper/shared/difx/latest/bin/m5spec /mnt/diskpack/%s/tone_%s_%s.vdif %s 512 1024 /tmp/%s_%s.m5spec" % (slot, code, scanname, dataFormat, scanname, slot)
 
     ssh = subprocess.Popen(["ssh", recorder, command], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     result = ssh.stdout.readlines()
@@ -130,12 +130,14 @@ def copyM5spec(recorder, inname, outname):
 
 
 def startModeOCT(args):
-    print (args)
-    print ("not yet implemented")
-    sys.exit(1)
+    global dataFormat
+    print ("Starting OCT processing")
+    dataFormat = "VDIF_8192-8192-1-2"
 
 def startModeDDC(args):
+    global dataFormat
     print ("Starting DDC processing")
+    dataFormat = "VDIF_%d-%d-%d-2" % (args.payloadSize, args.dataRate, args.numChannels)
 
     
 # parse the command line options
@@ -143,6 +145,7 @@ parser = argparse.ArgumentParser( description=description())
 
 
 subparsers = parser.add_subparsers (help="subcomand help")
+subparsers.required = True
 
 parser_ddc = subparsers.add_parser ('ddc', help='ddc mode help')
 parser_oct = subparsers.add_parser ('oct', help='oct mode help')
@@ -151,6 +154,9 @@ parser_oct = subparsers.add_parser ('oct', help='oct mode help')
 group = parser_ddc.add_mutually_exclusive_group(required=True)
 group.add_argument("-j","--json",  action='store_true', help="Print the tone information in serialized json format")
 group.add_argument("-X", dest='showPlot', action='store_true', help="Show a graphical display of the spectrum and the detected tones.")
+parser_ddc.add_argument("-ps", '--payload-size', type=int, default=8192, dest='payloadSize', help='The size (in bytes) of the VDIF packet payload (default: %(default)s).')
+parser_ddc.add_argument("-dr", '--data-rate', type=int, default=8192, dest='dataRate', help='The recording data rate (in Mpbs) per polarisation (default: %(default)s).')
+parser_ddc.add_argument("-nc", '--num-channels', type=int, default=1, dest='numChannels', help='The number of VDIF channels (default: %(default)s).')
 parser_ddc.add_argument("-p1", "--pol1-slot", type=str, default="1", dest="pol1Slot", help="The slot(s) in the recorder used for the 1st polarization. If data is in a group use e.g. 12 or 34 (default: %(default)s)")
 parser_ddc.add_argument("-p2", "--pol2-slot", type=str, default="2", dest="pol2Slot", help="The slot(s) in the recorder used for the 2nd polarization. If data is in a group use e.g. 12 or 34 (default: %(default)s)")
 parser_ddc.add_argument("-l", "--low-freq", type=int, dest="lowChan", default=0, help="The frequency of the lowest baseband channel [MHz] (default: %(default)s).")
@@ -167,12 +173,12 @@ parser_oct.add_argument("recorder", type=str, help="The hostname or IP of the ma
 #group2.add_argument("--previous", action='store_true', help="Path to previously created m5spec files. Tone extraction is done on these files; no recording is executed.")
 
 args = parser.parse_args()
-now = datetime.now().strftime("%y%m%d-%H%M%S")
-
-
-# got to the carious processing modes
+# got to the different processing modes
 args.func(args)
 
+print (dataFormat)
+
+now = datetime.now().strftime("%y%m%d-%H%M%S")
 # set the working directory 
 workDir = "/home/oper"
 try:
@@ -222,10 +228,10 @@ copyM5spec(args.recorder, file, "pol2.m5spec")
 if not os.path.exists(workDir + "/pol1.m5spec") or not os.path.exists(workDir + "/pol2.m5spec"):
     sys.exit("Error in obtaining the m5spec file. Exiting")
 
-print ("=== Fuse umounting the modules")
-state = fuseUnmount(args.recorder, args.pol1Slot)
 
 # plotting the spectra
 print ("=== Extracting the tones")
 plotM5spec(args.lowChan)
 
+print ("=== Fuse umounting the modules")
+state = fuseUnmount(args.recorder, args.pol1Slot)
