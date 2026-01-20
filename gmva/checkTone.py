@@ -104,6 +104,7 @@ def fuseUnmount(recorder, slot):
 
 def fuseMount(recorder, slot):
 
+    print("Mounting slot %s" %slot)
     ret = subprocess.Popen(['mountRecorder.sh', recorder, slot], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     result = ret.stdout.readlines()
 
@@ -132,11 +133,32 @@ def copyM5spec(recorder, inname, outname):
 def startModeOCT(args):
     global dataFormat
     print ("Starting OCT processing")
-    dataFormat = "VDIF_8192-8192-1-2"
+
+    # set defaults
+    if not args.dataRate:
+        args.dataRate = 8192
+    if not args.numChannels:
+        args.numChannels = 1
+    if not args.pol1Slot:
+        args.pol1Slot = "12"
+    if not args.pol2Slot:
+        args.pol2Slot = "34"
+    dataFormat = "VDIF_%d-%d-%d-2" % (args.payloadSize, args.dataRate, args.numChannels)
 
 def startModeDDC(args):
     global dataFormat
+
     print ("Starting DDC processing")
+    # set defaults
+    if not args.dataRate:
+        args.dataRate = 4096
+    if not args.numChannels:
+        args.numChannels = 16
+    if not args.pol1Slot:
+        args.pol1Slot = "1"
+    if not args.pol2Slot:
+        args.pol2Slot = "2"
+
     dataFormat = "VDIF_%d-%d-%d-2" % (args.payloadSize, args.dataRate, args.numChannels)
 
     
@@ -147,6 +169,12 @@ parser = argparse.ArgumentParser( description=description())
 # parser for the common arguments
 common = argparse.ArgumentParser(add_help=False)
 common.add_argument("-c", "--station-code", type=str, dest="code", default='Pv', help="The 2-letter station code to use for the recording default: %(default)s).")
+common.add_argument("-ps", '--payload-size', type=int, default=8192, dest='payloadSize', help='The size (in bytes) of the VDIF packet payload (default: %(default)s).')
+common.add_argument("-dr", '--data-rate', type=int, dest='dataRate', help='The recording data rate (in Mpbs) per polarisation')
+common.add_argument("-nc", '--num-channels', type=int, dest='numChannels', help='The number of VDIF channels')
+common.add_argument("-p1", "--pol1-slot", type=str, dest="pol1Slot", help="The slot(s) in the recorder used for the 1st polarization. If data is in a group use e.g. 12 or 34")
+common.add_argument("-p2", "--pol2-slot", type=str, dest="pol2Slot", help="The slot(s) in the recorder used for the 2nd polarization. If data is in a group use e.g. 12 or 34")
+common.add_argument("-l", "--low-freq", type=int, dest="lowChan", default=0, help="The frequency of the lowest baseband channel [MHz] (default: %(default)s).")
 group = common.add_mutually_exclusive_group(required=True)
 group.add_argument("-j","--json",  action='store_true', help="Print the tone information in serialized json format")
 group.add_argument("-X", dest='showPlot', action='store_true', help="Show a graphical display of the spectrum and the detected tones.")
@@ -159,15 +187,14 @@ parser_ddc = subparsers.add_parser ('ddc', parents=[common], help='run in DDC mo
 parser_oct = subparsers.add_parser ('oct', parents=[common], help='run in OCT mode. Use oct --help for specific options')
 
 # ddc mode
-parser_ddc.add_argument("-ps", '--payload-size', type=int, default=8192, dest='payloadSize', help='The size (in bytes) of the VDIF packet payload (default: %(default)s).')
-parser_ddc.add_argument("-dr", '--data-rate', type=int, default=8192, dest='dataRate', help='The recording data rate (in Mpbs) per polarisation (default: %(default)s).')
-parser_ddc.add_argument("-nc", '--num-channels', type=int, default=1, dest='numChannels', help='The number of VDIF channels (default: %(default)s).')
-parser_ddc.add_argument("-p1", "--pol1-slot", type=str, default="1", dest="pol1Slot", help="The slot(s) in the recorder used for the 1st polarization. If data is in a group use e.g. 12 or 34 (default: %(default)s)")
-parser_ddc.add_argument("-p2", "--pol2-slot", type=str, default="2", dest="pol2Slot", help="The slot(s) in the recorder used for the 2nd polarization. If data is in a group use e.g. 12 or 34 (default: %(default)s)")
-parser_ddc.add_argument("-l", "--low-freq", type=int, dest="lowChan", default=0, help="The frequency of the lowest baseband channel [MHz] (default: %(default)s).")
+#parser_ddc.add_argument("-ps", '--payload-size', type=int, default=8192, dest='payloadSize', help='The size (in bytes) of the VDIF packet payload (default: %(default)s).')
+#parser_ddc.add_argument("-dr", '--data-rate', type=int, dest='dataRate', help='The recording data rate (in Mpbs) per polarisation')
+#parser_ddc.add_argument("-nc", '--num-channels', type=int, dest='numChannels', help='The number of VDIF channels')
+#parser_ddc.add_argument("-p1", "--pol1-slot", type=str, dest="pol1Slot", help="The slot(s) in the recorder used for the 1st polarization. If data is in a group use e.g. 12 or 34")
+#parser_ddc.add_argument("-p2", "--pol2-slot", type=str, dest="pol2Slot", help="The slot(s) in the recorder used for the 2nd polarization. If data is in a group use e.g. 12 or 34")
+#parser_ddc.add_argument("-l", "--low-freq", type=int, dest="lowChan", default=0, help="The frequency of the lowest baseband channel [MHz] (default: %(default)s).")
 
 parser_ddc.set_defaults(func=startModeDDC)
-
 
 # oct mode (not yet implemented
 parser_oct.set_defaults(func=startModeOCT)
@@ -178,6 +205,7 @@ args = parser.parse_args()
 
 # got to the different processing modes
 args.func(args)
+
 
 print (dataFormat)
 
