@@ -28,13 +28,19 @@ import json
 def processSingleBand():
 
     tones = []
-    y = data[:,1]
+    if args.invert:
+        y = np.flipud(data[:,1])
+    else:
+        y = data[:,1]
 
     peaks =  findPeaks(y)
     for peak in peaks:
         peakFreq = x[peak]
         #peakY.append(y[peak])
         #peakIdx.append(peakFreq)
+        if args.invert:
+            peakFreq += freqRes
+            
 
         verbose("Found peak at Freq=%f Amplitude=%f (Idx=%d)" % (peakFreq, y[peak], peak))
         tones.append({'freq': peakFreq, 'amp': y[peak]})
@@ -160,10 +166,11 @@ def verbose(message):
         
 
 
-parser = argparse.ArgumentParser( description='Program to plot the results from m5spec')
+parser = argparse.ArgumentParser( description='Program to extract tones from m5spec files created from DBBC3 recordings. Optionally the spectrum and detected tones can be plotted on screen or exported as a png file.')
 
 parser.add_argument("-t", "--title", default="spectrum", help="The title to use for the plot. Only relevant together with the -X or --png options.")
 parser.add_argument("-l", "--low-freq", type=int, dest="lowChan", default=0, help="The frequency of the lowest baseband channel [MHz]")
+parser.add_argument("-i", "--invert", action='store_true', help="Invert the frequency range of the m5spec spectrum.")
 group = parser.add_mutually_exclusive_group()
 group.add_argument("-X", dest='showPlot', action='store_true', help="Show a graphical display of the spectrum and the detected peaks.")
 group.add_argument("-j","--json",  action='store_true', help="Print the tone information in serialized json format")
