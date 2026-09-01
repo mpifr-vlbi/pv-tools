@@ -61,11 +61,17 @@ def plotM5spec(lowFreq):
     elif args.json:
         arg = "-j"
 
+
     title1 = "Polarization_1_%s" % args.recorder
     title2 = "Polarization_2_%s" % args.recorder
     #workDir = "/home/oper/tonecheck/test"
     pol1Cmd = "getM5specTone.py %s -l %d -t %s %s/pol1.m5spec " % (arg, lowFreq, title1, workDir)
     pol2Cmd = "getM5specTone.py %s -l %d -t %s %s/pol2.m5spec " % (arg, lowFreq, title2, workDir)
+
+    if args.invertPol1:
+        pol1Cmd += ' --invert'
+    if args.invertPol2:
+        pol2Cmd += ' --invert'
 
     if args.showPlot:
         os.system(pol1Cmd + "&")
@@ -174,6 +180,8 @@ common.add_argument("-c", "--station-code", type=str, dest="code", default='Pv',
 common.add_argument("-ps", '--payload-size', type=int, default=8192, dest='payloadSize', help='The size (in bytes) of the VDIF packet payload (default: %(default)s).')
 common.add_argument("-dr", '--data-rate', type=int, dest='dataRate', help='The recording data rate (in Mpbs) per polarisation')
 common.add_argument("-nc", '--num-channels', type=int, dest='numChannels', help='The number of VDIF channels')
+common.add_argument("-i1", "--invert-pol1", action='store_true', dest="invertPol1", help="invert the frquency orientation of polarization 1")
+common.add_argument("-i2", "--invert-pol2", action='store_true', dest="invertPol2", help="invert the frquency orientation of polarization 2")
 common.add_argument("-p1", "--pol1-slot", type=str, dest="pol1Slot", help="The slot(s) in the recorder used for the 1st polarization. If data is in a group use e.g. 12 or 34")
 common.add_argument("-p2", "--pol2-slot", type=str, dest="pol2Slot", help="The slot(s) in the recorder used for the 2nd polarization. If data is in a group use e.g. 12 or 34")
 common.add_argument("-l", "--low-freq", type=int, dest="lowChan", default=0, help="The frequency of the lowest baseband channel [MHz] (default: %(default)s).")
